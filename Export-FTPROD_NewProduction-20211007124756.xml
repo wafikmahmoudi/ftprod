@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for x86-64) 2021.1 (Build 215U)" ts="2021-10-07 12:48:10">
+<Project name="EnsExportProduction_2021-10-07 12-47-55_857+0" LastModified="2021-10-07 12:48:10.112549">
+  <ProjectDescription>Studio Project generated from Production 'FTPROD.NewProduction' at 2021-10-07 12:47:55.857 UTC</ProjectDescription>
+  <Items>
+    <ProjectItem name="User.FTProdService" type="CLS"></ProjectItem>
+    <ProjectItem name="EnsExportNotes.EnsExportProduction_2021-10-07 12-47-55_857+0.PTD" type="PTD"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="User.FTProdService">
+<Super>Ens.BusinessService</Super>
+<TimeChanged>66022,53178.444385</TimeChanged>
+<TimeCreated>66000,53124.849542</TimeCreated>
+
+<Parameter name="ADAPTER">
+<Default>Ens.InboundAdapter</Default>
+</Parameter>
+
+<Property name="FHIRENDPOINT">
+<Type>%String</Type>
+</Property>
+
+<Parameter name="SETTINGS">
+<Default>FHIRENDPOINT:Basic</Default>
+</Parameter>
+
+<Method name="OnProcessInput">
+<FormalSpec>pInput:%Stream.Object,*pOutput:%Stream.Object</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	$$$LOGINFO("Starting 1..." )
+   $$$LOGINFO("Starting Getting FHIR Data..." )
+   set TSC=1
+   
+ /*********** Create a HTTP Request (GET) *************/
+  try { 
+  set exist = 0
+    
+     set httprequest = ##class(%Net.HttpRequest).%New()
+     set HttpResponse = ##class(%Net.HttpResponse).%New()
+     //set httprequest.Https = 1
+     set httprequest.ContentType  = "application/fhir+json"
+     set httprequest.ContentCharset ="UTF-8"
+     set httprequest.Server ="fhir-server.d3.synodis.ftprod.fr"
+     $$$LOGINFO("Setting Request to FTPROD server..." )
+     set httprequest.SSLConfiguration ="TestAsma"  
+     set status = httprequest.Get("/fhir/Organization?_count=1")  
+    Set Result = [].%FromJSON(httprequest.HttpResponse.Data)
+     Set dataftprod = Result.%ToJSON()
+     $$$LOGINFO("status : " _status)
+     $$$LOGINFO("Data from FTPROD : " _dataftprod)
+
+   // Get all IDs of posted resources from table FHIR_ORG_IDS
+    /*SET myquery="SELECT distinct * FROM SQLUser.FHIRORGIDS"
+    SET tStatement = ##class(%SQL.Statement).%New()
+    SET qStatus = tStatement.%Prepare(myquery)
+      $$$LOGINFO("qStatus : " _qStatus)*/
+    
+    
+
+   
+   // GET RESQUEST
+   //DONE :  Make iterator on the json data of FTPROD
+   // if id exist in the table ==>do not post on iris server 
+   // if id does not exist in the table ==> post on iris server 
+   Set clientObj = ##class(HS.FHIRServer.RestClient.FHIRService).CreateInstance(..FHIRENDPOINT)
+   Do clientObj.SetResponseFormat("JSON")
+   set entries=Result."entry"
+   set iter = entries.%GetIterator()
+   set pointer=0
+   set exist=0
+   while iter.%GetNext(.key, .value) { 
+      //$$$LOGINFO("Entry :"_key)
+      $$$LOGINFO("Conversion... ")
+      set jsonData2=value."resource"
+      set id=jsonData2."id"
+      set jsonData2."id" = "org2"
+      //set reference = jsonData2.endpoint.reference
+      //$$$LOGINFO("Organization reference from FTPRODddddddddddddddddddddddddddddddddddddddd : " _reference)
+      $$$LOGINFO("Organization ID from FTPROD : " _id)
+      $$$LOGINFO("Content Data from FTPROD :"_value.%ToJSON()_"/  ")
+      Set d=jsonData2.%Remove("endpoint")
+      //on peut pas poster un id de l'organisation il faut le supprimer
+      $$$LOGINFO("After removing endpoint : " _jsonData2.%ToJSON()) 
+      
+      
+
+      //Before Posting on iris server : verify if the organization id exist in the table = already posted
+      SET rset = tStatement.%Execute()
+      $$$LOGINFO("Testing existence for "_id)
+      /*WHILE ( rset.%Next() ){
+      $$$LOGINFO("Org_ID :         "_rset.%Get("Org_ID"))
+      $$$LOGINFO("id :   "_id)
+      
+       //if ($ZCONVERT($CHAR(rset.%Get("Org_ID")),"U")=$ZCONVERT($CHAR(id),"U")) 
+       
+         if (rset.%Get("Org_ID") = id) 
+         {
+        set exist=1
+        
+        }
+      }
+        
+        $$$LOGINFO("Exist for "_id_"="_exist )*/
+
+      set org2 = "Organization/org2"
+
+      //IF ID exist in the table ==> DO NOT POST REQUEST 
+      //ELSE POST new resource  in the server
+      //IF exist=1 { }
+      //ELSE{
+        $$$LOGINFO("Posting on server exist=false..")
+      set requestpost = ##class(HS.FHIRServer.API.Data.Request).%New()
+      set requestpost.RequestPath = org2
+      set requestpost.RequestMethod = "PUT"
+      $$$LOGINFO("Posting on server 2..")
+      set requestpost.Json = jsonData2
+      $$$LOGINFO("Posting on server 3..")
+      set clientResponseObjpost=clientObj.InvokeRequest(requestpost)
+      $$$LOGINFO("Posting on server 4..")
+      Set FhirDatapost=clientResponseObjpost.Json
+      $$$LOGINFO("Posting on server 5..")
+      Set textpost = FhirDatapost
+      $$$LOGINFO("Posting on server 6..")
+       $$$LOGINFO(id_" is posted to the server ") 
+       set pointer=pointer+1
+       
+       
+       
+       /**/////////////////////////////update id dans la table organsation///////////////////////**//
+     /*  Set ro = ##class(%SQL.Statement).%ExecDirect(,"SELECT top 1 * FROM HSFHIR_X0001_S.Organization order by id1 desc")
+        While ro.%Next() { 
+        set ID1 = rs.%Get("ID1")
+           $$$LOGINFO(" ID11111111111111111111 "_ID1) 
+        }
+        //update le Key (mettre organsition/org1) where id1=id1 
+        SET myquery3="update HSFHIR_X0001_S.Organization set Key = 'Organization/'"_id_"where ID1 = "_ID1
+        SET tStatement3 = ##class(%SQL.Statement).%New()
+        SET qStatus3 = tStatement2.%Prepare(myquery3)
+        SET rset3 = tStatement2.%Execute()*/
+        
+       //////////////////////////////////////////////////////////////////////////////////////////////
+
+       //Insert posted Id into server for farther tests
+       /* SET myquery2="INSERT INTO SQLUser.FHIRORGIDS values(?)"
+        SET tStatement2 = ##class(%SQL.Statement).%New()
+        SET qStatus2 = tStatement2.%Prepare(myquery2)
+        SET rset2 = tStatement2.%Execute(id)*/
+
+      //}
+      set exist=0
+     
+   }  
+
+   $$$LOGINFO(pointer_" organizations were added to the server")
+
+ 
+   HANG 60
+
+     
+     Quit:$$$ISERR(status)
+     }
+     
+   Catch ex {
+	Set tSC= ex.AsStatus()
+	}
+
+	Quit TSC
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Document name="EnsExportNotes.EnsExportProduction_2021-10-07 12-47-55_857+0.PTD"><ProjectTextDocument name="EnsExportNotes.EnsExportProduction_2021-10-07 12-47-55_857+0" description="Export Notes for export EnsExportProduction_2021-10-07 12-47-55_857+0">
+<![CDATA[<Deployment>
+<Creation>
+<Machine>VM-FRE-TESTDPLMNT-FC.OMBMZRXPXFSUXJ13GJ2ED1JFCA.PARX.INTERNAL.CLOUDAPP.NET</Machine>
+<Instance>IRISHEALTH_FRETEST_1</Instance>
+<Namespace>FMEFHIRV2</Namespace>
+<SourceProduction>FTPROD.NewProduction</SourceProduction>
+<Username>WafikMA-IRIS</Username>
+<UTC>2021-10-07 12:48:09.506</UTC>
+</Creation>
+<Notes>
+</Notes>
+<Contents>
+<ExportProject>EnsExportProduction_2021-10-07 12-47-55_857+0</ExportProject>
+<Item num="1">User.FTProdService.CLS</Item>
+</Contents>
+<ProductionClassInExport></ProductionClassInExport>
+</Deployment>
+
+]]></ProjectTextDocument>
+</Document></Export>
