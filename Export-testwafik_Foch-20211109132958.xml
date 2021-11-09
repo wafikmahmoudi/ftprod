@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for x86-64) 2020.1 (Build 217_1U)" ts="2021-11-09 13:30:25">
+<Project name="EnsExportProduction_2021-11-09 13-29-58_323+0" LastModified="2021-11-09 13:30:25.755455">
+  <ProjectDescription>Studio Project generated from Production 'testwafik.Foch' at 2021-11-09 13:29:58.323 UTC</ProjectDescription>
+  <Items>
+    <ProjectItem name="User.AnamneseToken" type="CLS"></ProjectItem>
+    <ProjectItem name="User.AnamneseToken2" type="CLS"></ProjectItem>
+    <ProjectItem name="Settings:User.AnamneseToken2.PTD" type="PTD"></ProjectItem>
+    <ProjectItem name="Settings:inputRoanne.PTD" type="PTD"></ProjectItem>
+    <ProjectItem name="EnsExportNotes.EnsExportProduction_2021-11-09 13-29-58_323+0.PTD" type="PTD"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="User.AnamneseToken">
+<Super>Ens.BusinessService</Super>
+<TimeChanged>66057,47330.988064</TimeChanged>
+<TimeCreated>66050,46870.273513</TimeCreated>
+
+<Parameter name="ADAPTER">
+<Default>Ens.InboundAdapter</Default>
+</Parameter>
+
+<Parameter name="SETTINGS">
+<Default>TargetConfigNames,Query</Default>
+</Parameter>
+
+<Property name="TargetConfigNames">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Method name="OnProcessInput">
+<FormalSpec>pInput:%RegisteredObject,*pOutput:%RegisteredObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	try{
+				
+		   $$$LOGINFO("hello wafik")
+		 
+		   
+		     Set request=##class(%Net.HttpRequest).%New()
+		     set HttpResponse=##class(%Net.HttpResponse).%New()
+		     //set request.Authorization=("Basic dGVzdEBhbmFtbmVzZS5jYXJlOjEyMzQ=")	
+		     //d request.InsertParam("username","wafik.mahmoudi@synodis.fr") 
+ 	       // d request.InsertParam("password","Wafik1990") 
+		     set request.ContentType=("application/json; charset=UTF-8") 
+		     set request.SSLConfiguration="testWafik"
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    
+		     set Jsonbody={}
+		     set Jsonbody.username = "wafik.mahmoudi@synodis.fr_foch"
+		      set Jsonbody.password = "Wafik1990"
+		      do request.EntityBody.Write(Jsonbody.%ToJSON())
+		     
+		     
+		     set request.Server="preprod.anamnese.me"
+     
+             set status=request.Post("/api/token/")
+             $$$LOGINFO("test"_status)
+             Set Result = [].%FromJSON(request.HttpResponse.Data)
+            $$$LOGINFO("Data retrieved :"_Result.%ToJSON())
+            set token=Result.%Get("access")
+         
+             $$$LOGINFO("token "_token)
+             
+             
+             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      
+           Set request=##class(%Net.HttpRequest).%New()
+		    set HttpResponse=##class(%Net.HttpResponse).%New()
+
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    set request.SSLConfiguration="testWafik"
+		    //Set sc=request.SetHeader("Authorization","Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM1ODczMjg2LCJqdGkiOiJlNGYxZTZiNjI3Y2M0OWNkOTc0YWY0NGY1NWI1NmM2YSIsInVzZXJfaWQiOjkzMjkwfQ.sueouypqLQ3K4_eb1th25IOjcEoQw_TgsknQC2h1xkk")
+		    Set request.Authorization=("Bearer " _token)
+		   Set sc=request.SetHeader("Content-Disposition","attachment; filename=upload.hl7")
+		   set request.ContentType = ("application/octet-stream; charset=utf-8")
+		   
+		   
+		          /* set request2=##class(%Net.HttpRequest).%New()
+		    Set HttpResponse2=##class(%Net.HttpResponse).%New()
+		    $$$LOGINFO("test pppppppppppppp")
+		    set request2.SSLConfiguration="testWafik"
+		    Set request2.Https = 1
+		    set jj={}
+		    set jj.databinary = "ddd"
+		   	//Set request2.Authorization=("Bearer " _token)
+		   	
+		   	//set request2.ContentDisposition = ("attachment ; filename= upload.hl7")
+		   	
+		   	 //do request2.EntityBody.Write(jj.%ToJSON())
+		    Set request2.Server="orl.preprod.anamnese.me"
+		    set status2=request2.Post("/api/consultation_hl7")    
+		    $$$LOGINFO("test2 "_status2)
+		     $$$LOGINFO("request2.HttpResponse2.Data"_request2.HttpResponse2.Data)
+             Set Result2 = [].%FromJSON(request2.HttpResponse2)
+                $$$LOGINFO("vfv ")
+               $$$LOGINFO("Result2"_Result2)
+            $$$LOGINFO("Data retrieved :"_Result2.%ToJSON())*/
+		   
+		   
+		  
+			  /*Set file=##class(%File).%New("/datadrive/home/wmahmoudi/testRoanne/Ex33.hl7")
+			  Write file.Size
+			  Do file.Open("WSN")
+			  Do file.WriteLine("This is a line of text")*/
+		  
+		  
+		  /*S FILE=##class(%File).%New("/datadrive/home/wmahmoudi/testRoanne/Ex33.hl7")
+		  S STATUS=FILE.Open("RS")
+		  D request.EntityBody.CopyFrom(FILE)*/
+		  
+
+		    /*Set stream=##class(%FileBinaryStream).%New()
+           Set stream.Filename="/datadrive/home/wmahmoudi/testRoanne/Ex2.hl7"
+		       D request.EntityBody.CopyFrom(stream)*/
+		  
+				set tFile=##class(%Stream.FileBinary).%New()
+				do tFile.LinkToFile("/datadrive/home/wmahmoudi/testRoanne/Ex1.hl7")
+				D request.EntityBody.CopyFrom(tFile)
+				
+		
+				
+				
+				
+				
+				
+				//D request.InsertFormData("file","/datadrive/home/wmahmoudi/testRoanne/Ex1.txt")
+				
+				
+				
+				//d request.EntityBody.Write(tFile)
+				
+								
+            
+		  // D request.InsertFormData("file","/tmp/upload.hl7")
+		   
+		     set request.Server="orl.preprod.anamnese.me"
+             set status=request.Post("/api/consultation_hl7")  
+               D request.HttpResponse.OutputToDevice() 
+             $$$LOGINFO("test      "_status)
+             //Set Result = [].%FromJSON(request.HttpResponse.Data)
+           //$$$LOGINFO("resultat :"_Result.%ToJSON())
+            $$$LOGINFO("test      "_request.HttpResponse)
+              $$$LOGINFO("test      "_request.HttpResponse.Data.Read())
+                $$$LOGINFO("test      "_request.HttpResponse.StatusCode)
+     
+            //set token=Result.%Get("access")
+         
+            // $$$LOGINFO("resultat "_token)
+		
+		
+		    $$$LOGINFO("resultat ")
+		
+             
+             
+             
+             
+             
+             
+             
+             
+             Quit:$$$ISERR(status)
+       } Catch ex {
+                    Set status= ex.AsStatus()
+       }
+         Quit 1
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="User.AnamneseToken2">
+<Super>Ens.BusinessOperation</Super>
+<TimeChanged>66057,48432.620635</TimeChanged>
+<TimeCreated>66056,48387.243824</TimeCreated>
+
+<Parameter name="ADAPTER">
+<Default>EnsLib.HTTP.OutboundAdapter</Default>
+</Parameter>
+
+<Property name="Adapter">
+<Type>EnsLib.HTTP.OutboundAdapter</Type>
+</Property>
+
+<Parameter name="SETTINGS">
+<Default>FilePath</Default>
+</Parameter>
+
+<Property name="FilePath">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Parameter name="INVOCATION">
+<Default>Queue</Default>
+</Parameter>
+
+<Method name="test">
+<FormalSpec>pInput:EnsLib.HL7.Message,*pOutput:%RegisteredObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		
+		 
+	try{
+	hang 0.5
+				
+		   $$$LOGINFO("hello wafik")
+		 
+		   
+		     Set request=##class(%Net.HttpRequest).%New()
+		     set HttpResponse=##class(%Net.HttpResponse).%New() 
+		     set request.ContentType=("application/json; charset=UTF-8") 
+		     set request.SSLConfiguration="testWafik"
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    
+		     set Jsonbody={}
+		     set Jsonbody.username = "wafik.mahmoudi@synodis.fr_foch"
+		      set Jsonbody.password = "Wafik1990"
+		      do request.EntityBody.Write(Jsonbody.%ToJSON())
+		     
+		     
+		     set request.Server="preprod.anamnese.me"
+     
+             set status=request.Post("/api/token/")
+             $$$LOGINFO("test"_status)
+             Set Result = [].%FromJSON(request.HttpResponse.Data)
+            $$$LOGINFO("Data retrieved :"_Result.%ToJSON())
+            set token=Result.%Get("access")
+         
+             $$$LOGINFO("token "_token)
+             
+             
+             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+             
+    
+             
+             
+             
+             
+           Set request=##class(%Net.HttpRequest).%New()
+		    set HttpResponse=##class(%Net.HttpResponse).%New()
+
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    set request.SSLConfiguration="testWafik"
+		    //Set sc=request.SetHeader("Authorization","Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM1ODczMjg2LCJqdGkiOiJlNGYxZTZiNjI3Y2M0OWNkOTc0YWY0NGY1NWI1NmM2YSIsInVzZXJfaWQiOjkzMjkwfQ.sueouypqLQ3K4_eb1th25IOjcEoQw_TgsknQC2h1xkk")
+		    Set request.Authorization=("Bearer " _token)
+		   Set sc=request.SetHeader("Content-Disposition","attachment; filename=siu.hl7")
+		   set request.ContentType = ("application/octet-stream")
+		   
+		   
+		   set repertoire = ..FilePath_"/Ex33.hl7"
+		     Set file=##class(%File).%New(repertoire)
+			  Write file.Size
+			  Do file.Open("WSN")
+			  Do file.WriteLine(pInput.RawContent)
+			  Do file.Close()
+			  hang 0.5
+			  
+			  	set tFile=##class(%Stream.FileBinary).%New()
+				do tFile.LinkToFile(repertoire)
+				D request.EntityBody.CopyFrom(tFile)
+				
+          do ##class(%File).Delete(repertoire)
+   
+		   
+		     set request.Server="orl.preprod.anamnese.me"
+             set status=request.Post("/api/consultation_hl7")  
+               D request.HttpResponse.OutputToDevice() 
+             $$$LOGINFO("test      "_status)
+             //Set Result = [].%FromJSON(request.HttpResponse.Data)
+           //$$$LOGINFO("resultat :"_Result.%ToJSON())
+            $$$LOGINFO("test      "_request.HttpResponse)
+              $$$LOGINFO("test      "_request.HttpResponse.Data.Read())
+                $$$LOGINFO("test      "_request.HttpResponse.StatusCode)
+    
+		
+		
+		    $$$LOGINFO("resultat ")
+		
+             
+             
+             
+             
+             
+             
+             
+             
+             Quit:$$$ISERR(status)
+			
+		
+         
+          
+              } Catch ex {
+              
+              Set status= ex.AsStatus()
+               $$$LOGINFO("res "_status)
+                  }  
+       
+         Quit 1
+]]></Implementation>
+</Method>
+
+<XData name="MessageMap">
+<Data><![CDATA[
+<MapItems>
+    <MapItem MessageType="EnsLib.HL7.Message">
+        <Method>test</Method>
+    </MapItem>
+</MapItems>
+]]></Data>
+</XData>
+</Class>
+
+
+<Document name="EnsExportNotes.EnsExportProduction_2021-11-09 13-29-58_323+0.PTD"><ProjectTextDocument name="EnsExportNotes.EnsExportProduction_2021-11-09 13-29-58_323+0" description="Export Notes for export EnsExportProduction_2021-11-09 13-29-58_323+0">
+<![CDATA[<Deployment>
+<Creation>
+<Machine>IRISDEV01.BRC35RDCW0WETDHB0F3U3PXPVB.PARX.INTERNAL.CLOUDAPP.NET</Machine>
+<Instance>UBUNTUIRISDEV01</Instance>
+<Namespace>ROANNE</Namespace>
+<SourceProduction>testwafik.Foch</SourceProduction>
+<Username>wmahmoudi</Username>
+<UTC>2021-11-09 13:30:25.753</UTC>
+</Creation>
+<Notes>
+</Notes>
+<Contents>
+<ExportProject>EnsExportProduction_2021-11-09 13-29-58_323+0</ExportProject>
+<Item num="1">Settings:User.AnamneseToken2.PTD</Item>
+<Item num="2">Settings:inputRoanne.PTD</Item>
+<Item num="3">User.AnamneseToken.CLS</Item>
+<Item num="4">User.AnamneseToken2.CLS</Item>
+</Contents>
+<ProductionClassInExport></ProductionClassInExport>
+</Deployment>
+
+]]></ProjectTextDocument>
+</Document>
+
+<Document name="Settings:User.AnamneseToken2.PTD"><ProjectTextDocument name="Settings:User.AnamneseToken2" description="Settings for User.AnamneseToken2 in Production testwafik.Foch">
+<![CDATA[<Item Name="User.AnamneseToken2" Category="" ClassName="User.AnamneseToken2" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule=""><Setting Target="Host" Name="FilePath">/datadrive/home/wmahmoudi/testRoanne</Setting></Item>
+]]></ProjectTextDocument>
+</Document>
+
+<Document name="Settings:inputRoanne.PTD"><ProjectTextDocument name="Settings:inputRoanne" description="Settings for inputRoanne in Production testwafik.Foch">
+<![CDATA[<Item Name="inputRoanne" Category="" ClassName="EnsLib.HL7.Service.FileService" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule=""><Setting Target="Adapter" Name="FileSpec">*.hl7</Setting><Setting Target="Adapter" Name="FilePath">/datadrive/home/wmahmoudi/testRoanne</Setting><Setting Target="Host" Name="TargetConfigNames">User.AnamneseToken2</Setting><Setting Target="Adapter" Name="CallInterval">10</Setting><Setting Target="Adapter" Name="FileAccessTimeout">5</Setting></Item>
+]]></ProjectTextDocument>
+</Document></Export>
