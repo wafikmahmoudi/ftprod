@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="26" zv="Cache for UNIX (Ubuntu Server LTS for x86-64) 2017.1.3 (Build 319_6U)" ts="2021-11-25 18:19:40">
+<Project name="EnsExportProduction_2021-11-25 18-19-23_022+0" LastModified="2021-11-25 18:19:40.603868">
+  <ProjectDescription>Studio Project generated from Production 'testwafik.Foch' at 2021-11-25 18:19:23.022 UTC</ProjectDescription>
+  <Items>
+    <ProjectItem name="User.AnamneseAPISIU" type="CLS"></ProjectItem>
+    <ProjectItem name="User.AnamnesegetToken" type="CLS"></ProjectItem>
+    <ProjectItem name="Settings:APISIUrendezvous.PTD" type="PTD"></ProjectItem>
+    <ProjectItem name="Settings:InputSIU.PTD" type="PTD"></ProjectItem>
+    <ProjectItem name="Settings:getTokenBS.PTD" type="PTD"></ProjectItem>
+    <ProjectItem name="EnsExportNotes.EnsExportProduction_2021-11-25 18-19-23_022+0.PTD" type="PTD"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="User.AnamneseAPISIU">
+<Super>Ens.BusinessOperation</Super>
+<TimeChanged>66073,65914.380428</TimeChanged>
+<TimeCreated>66073,52984.962135</TimeCreated>
+
+<Parameter name="ADAPTER">
+<Default>EnsLib.HTTP.OutboundAdapter</Default>
+</Parameter>
+
+<Property name="Adapter">
+<Type>EnsLib.HTTP.OutboundAdapter</Type>
+</Property>
+
+<Parameter name="SETTINGS">
+<Default>FilePath</Default>
+</Parameter>
+
+<Property name="FilePath">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Parameter name="INVOCATION">
+<Default>Queue</Default>
+</Parameter>
+
+<Method name="test">
+<FormalSpec>pInput:EnsLib.HL7.Message,*pOutput:%RegisteredObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		
+		 
+	try{
+	hang 0.9
+	 set token = ^Token
+				
+		   $$$LOGINFO("hello wafik")
+             
+           Set request=##class(%Net.HttpRequest).%New()
+		    set HttpResponse=##class(%Net.HttpResponse).%New()
+
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    set request.SSLConfiguration="testWafik"
+		   
+		    Set request.Authorization=("Bearer " _token)
+           Set sc=request.SetHeader("Content-Disposition","attachment; filename=siu.hl7")
+		   set request.ContentType = ("application/octet-stream")
+		   
+		   
+		   set repertoire = ..FilePath_"/Ex33.hl7"
+		     Set file=##class(%File).%New(repertoire)
+			  Write file.Size
+			  Do file.Open("WSN")
+			  Do file.WriteLine(pInput.RawContent)
+			  Do file.Close()
+			  hang 0.5
+			  
+			  	set tFile=##class(%Stream.FileBinary).%New()
+				do tFile.LinkToFile(repertoire)
+				D request.EntityBody.CopyFrom(tFile)
+				
+          do ##class(%File).Delete(repertoire)
+   
+		   
+		     set request.Server="orl.preprod.anamnese.me"
+             set status=request.Post("/api/consultation_hl7")  
+               D request.HttpResponse.OutputToDevice() 
+             $$$LOGINFO("test      "_status)
+             //Set Result = [].%FromJSON(request.HttpResponse.Data)
+           //$$$LOGINFO("resultat :"_Result.%ToJSON())
+            $$$LOGINFO("test      "_request.HttpResponse)
+              $$$LOGINFO("test      "_request.HttpResponse.Data.Read())
+                $$$LOGINFO("test      "_request.HttpResponse.StatusCode)
+    
+		
+		
+		    $$$LOGINFO("resultat ")
+		
+             
+             if (request.HttpResponse.StatusCode = 401)
+             {
+             $$$LOGINFO("****************new token******************")
+             Set request=##class(%Net.HttpRequest).%New()
+		     set HttpResponse=##class(%Net.HttpResponse).%New() 
+		     set request.ContentType=("application/json; charset=UTF-8") 
+		     set request.SSLConfiguration="testWafik"
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    
+		     set Jsonbody={}
+		     set Jsonbody.username = "wafik.mahmoudi@synodis.fr_foch"
+		      set Jsonbody.password = "Wafik1990"
+		      do request.EntityBody.Write(Jsonbody.%ToJSON())
+		     
+		     
+		     set request.Server="preprod.anamnese.me"
+     
+             set status=request.Post("/api/token/")
+             $$$LOGINFO("test"_status)
+             Set Result = [].%FromJSON(request.HttpResponse.Data)
+            $$$LOGINFO("Data retrieved :"_Result.%ToJSON())
+            set token=Result.%Get("access")
+         
+             $$$LOGINFO("new token "_token)
+             ////////////////////////////////////////// envoie de meme rendez vous////////////////////////
+             hang 0.5
+	         set token = ^Token
+				
+		   $$$LOGINFO("hello wafik 2")
+             
+           Set request=##class(%Net.HttpRequest).%New()
+		    set HttpResponse=##class(%Net.HttpResponse).%New()
+
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    set request.SSLConfiguration="testWafik"
+		   
+		   Set request.Authorization=("Bearer " _token)
+		   Set sc=request.SetHeader("Content-Disposition","attachment; filename=siu.hl7")
+		   set request.ContentType = ("application/octet-stream")
+		   
+		   
+		   set repertoire = ..FilePath_"/Ex33.hl7"
+		     Set file=##class(%File).%New(repertoire)
+			  Write file.Size
+			  Do file.Open("WSN")
+			  Do file.WriteLine(pInput.RawContent)
+			  Do file.Close()
+			  hang 0.5
+			  
+			  	set tFile=##class(%Stream.FileBinary).%New()
+				do tFile.LinkToFile(repertoire)
+				D request.EntityBody.CopyFrom(tFile)
+				
+          do ##class(%File).Delete(repertoire)
+   
+		   
+		     set request.Server="orl.preprod.anamnese.me"
+             set status=request.Post("/api/consultation_hl7")  
+               D request.HttpResponse.OutputToDevice() 
+             $$$LOGINFO("test      "_status)
+             //Set Result = [].%FromJSON(request.HttpResponse.Data)
+           //$$$LOGINFO("resultat :"_Result.%ToJSON())
+            $$$LOGINFO("test      "_request.HttpResponse)
+              $$$LOGINFO("test      "_request.HttpResponse.Data.Read())
+                $$$LOGINFO("test      "_request.HttpResponse.StatusCode)
+    
+		
+		
+		    $$$LOGINFO("resultat ")
+             }
+             
+             
+             
+             
+             
+             
+             
+             Quit:$$$ISERR(status)
+			
+		
+         
+          
+              } Catch ex {
+              
+              Set status= ex.AsStatus()
+               $$$LOGINFO("res "_status)
+                  }  
+       
+         Quit 1
+]]></Implementation>
+</Method>
+
+<XData name="MessageMap">
+<Data><![CDATA[
+<MapItems>
+    <MapItem MessageType="EnsLib.HL7.Message">
+        <Method>test</Method>
+    </MapItem>
+</MapItems>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="User.AnamnesegetToken">
+<Super>Ens.BusinessService</Super>
+<TimeChanged>66073,45730.742575</TimeChanged>
+<TimeCreated>66073,45603.521599</TimeCreated>
+
+<Parameter name="ADAPTER">
+<Default>Ens.InboundAdapter</Default>
+</Parameter>
+
+<Parameter name="SETTINGS">
+<Default>TargetConfigNames,Query</Default>
+</Parameter>
+
+<Property name="TargetConfigNames">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Method name="OnProcessInput">
+<FormalSpec>pInput:%RegisteredObject,*pOutput:%RegisteredObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		
+		 
+	try{
+				set ^Token=""
+		  
+				
+		   $$$LOGINFO("hello wafik")
+		 
+		   
+		     Set request=##class(%Net.HttpRequest).%New()
+		     set HttpResponse=##class(%Net.HttpResponse).%New() 
+		     set request.ContentType=("application/json; charset=UTF-8") 
+		     set request.SSLConfiguration="testWafik"
+		      $$$LOGINFO("hello2")
+		     set request.Https=1
+		    
+		     set Jsonbody={}
+		     set Jsonbody.username = "wafik.mahmoudi@synodis.fr_foch"
+		      set Jsonbody.password = "Wafik1990"
+		      do request.EntityBody.Write(Jsonbody.%ToJSON())
+		     
+		     
+		     set request.Server="preprod.anamnese.me"
+     
+             set status=request.Post("/api/token/")
+             $$$LOGINFO("test"_status)
+             Set Result = [].%FromJSON(request.HttpResponse.Data)
+            $$$LOGINFO("Data retrieved :"_Result.%ToJSON())
+            set token=Result.%Get("access")
+         
+             $$$LOGINFO("token "_token)
+             set ^Token=token
+       
+             Quit:$$$ISERR(status)
+          
+              } Catch ex {
+              
+              Set status= ex.AsStatus()
+               $$$LOGINFO("res "_status)
+                  }  
+       
+         Quit 1
+]]></Implementation>
+</Method>
+
+<XData name="MessageMap">
+<Data><![CDATA[
+<MapItems>
+    <MapItem MessageType="EnsLib.HL7.Message">
+        <Method>test</Method>
+    </MapItem>
+</MapItems>
+]]></Data>
+</XData>
+</Class>
+
+
+<Document name="EnsExportNotes.EnsExportProduction_2021-11-25 18-19-23_022+0.PTD"><ProjectTextDocument name="EnsExportNotes.EnsExportProduction_2021-11-25 18-19-23_022+0" description="Export Notes for export EnsExportProduction_2021-11-25 18-19-23_022+0">
+<![CDATA[<Deployment>
+<Creation>
+<Machine>IRISDEV01.BRC35RDCW0WETDHB0F3U3PXPVB.PARX.INTERNAL.CLOUDAPP.NET</Machine>
+<Instance>UBUNTUIRISDEV01</Instance>
+<Namespace>ROANNE</Namespace>
+<SourceProduction>testwafik.Foch</SourceProduction>
+<Username>wmahmoudi</Username>
+<UTC>2021-11-25 18:19:40.602</UTC>
+</Creation>
+<Notes>
+</Notes>
+<Contents>
+<ExportProject>EnsExportProduction_2021-11-25 18-19-23_022+0</ExportProject>
+<Item num="1">Settings:APISIUrendezvous.PTD</Item>
+<Item num="2">Settings:InputSIU.PTD</Item>
+<Item num="3">Settings:getTokenBS.PTD</Item>
+<Item num="4">User.AnamneseAPISIU.CLS</Item>
+<Item num="5">User.AnamnesegetToken.CLS</Item>
+</Contents>
+<ProductionClassInExport></ProductionClassInExport>
+</Deployment>
+
+]]></ProjectTextDocument>
+</Document>
+
+<Document name="Settings:APISIUrendezvous.PTD"><ProjectTextDocument name="Settings:APISIUrendezvous" description="Settings for APISIUrendezvous in Production testwafik.Foch">
+<![CDATA[<Item Name="APISIUrendezvous" Category="" ClassName="User.AnamneseAPISIU" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule=""><Setting Target="Host" Name="FilePath">/datadrive/home/wmahmoudi/testRoanne</Setting></Item>
+]]></ProjectTextDocument>
+</Document>
+
+<Document name="Settings:InputSIU.PTD"><ProjectTextDocument name="Settings:InputSIU" description="Settings for InputSIU in Production testwafik.Foch">
+<![CDATA[<Item Name="InputSIU" Category="" ClassName="EnsLib.HL7.Service.FileService" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule=""><Setting Target="Adapter" Name="FileSpec">*.hl7</Setting><Setting Target="Adapter" Name="FilePath">/datadrive/home/wmahmoudi/testRoanne</Setting><Setting Target="Host" Name="TargetConfigNames">APISIUrendezvous</Setting></Item>
+]]></ProjectTextDocument>
+</Document>
+
+<Document name="Settings:getTokenBS.PTD"><ProjectTextDocument name="Settings:getTokenBS" description="Settings for getTokenBS in Production testwafik.Foch">
+<![CDATA[<Item Name="getTokenBS" Category="" ClassName="User.AnamnesegetToken" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule=""><Setting Target="Adapter" Name="CallInterval">7200</Setting></Item>
+]]></ProjectTextDocument>
+</Document></Export>
